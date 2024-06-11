@@ -27,7 +27,6 @@ class ImageRenamer(QWidget):
 
         self.listWidget = QListWidget(self)
         self.listWidget.clicked.connect(self.onFileSelect)
-        self.listWidget.currentRowChanged.connect(self.onFileSelect)  # 상하 키로 파일 선택을 반영
         self.leftLayout.addWidget(self.listWidget)
 
         # 이미지를 표시할 오른쪽 레이아웃
@@ -73,8 +72,9 @@ class ImageRenamer(QWidget):
         self.listWidget.addItems(self.files)
 
     def onFileSelect(self):
-        selected_file = self.listWidget.currentItem().text()
-        self.displayImage(selected_file)
+        selected_file = self.listWidget.currentItem()
+        if selected_file:
+            self.displayImage(selected_file.text())
 
     def displayImage(self, file_name):
         file_path = os.path.join(self.directory, file_name)
@@ -90,7 +90,7 @@ class ImageRenamer(QWidget):
         self.imageLabel.setPixmap(pixmap)
 
     def renameFile(self):
-        if not self.directory:
+        if not hasattr(self, 'directory') or not self.directory:
             QMessageBox.critical(self, "오류", "디렉토리를 선택하세요.")
             return
 
@@ -114,9 +114,23 @@ class ImageRenamer(QWidget):
             return
 
         os.rename(old_file_path, new_file_path)
-        self.loadFiles()
+        self.loadFiles()  # 파일 목록을 갱신
         self.newNameEdit.clear()
+        self.imageLabel.clear()  # 이미지 라벨 초기화
         QMessageBox.information(self, "성공", "파일 이름이 성공적으로 변경되었습니다.")
+
+    def keyPressEvent(self, event):
+        if self.newNameEdit.hasFocus():
+            if event.key() == Qt.Key_Up:
+                current_row = self.listWidget.currentRow()
+                if current_row > 0:
+                    self.listWidget.setCurrentRow(current_row - 1)
+            elif event.key() == Qt.Key_Down:
+                current_row = self.listWidget.currentRow()
+                if current_row < self.listWidget.count() - 1:
+                    self.listWidget.setCurrentRow(current_row + 1)
+        else:
+            super().keyPressEvent(event)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
