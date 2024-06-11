@@ -12,7 +12,8 @@ def list_files(directory):
 # 파일 이름 변경 함수
 def rename_file(directory, file, new_name):
     old_file = os.path.join(directory, file)
-    new_file = os.path.join(directory, new_name)
+    file_name, file_extension = os.path.splitext(file)
+    new_file = os.path.join(directory, f"{new_name}{file_extension}")
     os.rename(old_file, new_file)
     print(f"파일 이름 변경: {old_file} -> {new_file}")
 
@@ -42,7 +43,7 @@ if files:
             file_index = int(file_index) - 1
             if 0 <= file_index < len(files):
                 selected_file = files[file_index]
-                new_name = input(f"새로운 파일명을 입력하세요 (종료하려면 'exit' 입력): ")
+                new_name = input(f"새로운 파일명을 입력하세요 (확장자는 변경되지 않습니다, 종료하려면 'exit' 입력): ")
                 if new_name.lower() == 'exit':
                     print("프로그램을 종료합니다.")
                     break
