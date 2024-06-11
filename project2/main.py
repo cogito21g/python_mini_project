@@ -17,10 +17,15 @@ def rename_file(directory, file, new_name):
     print(f"파일 이름 변경: {old_file} -> {new_file}")
 
 # 사용자 입력 받기
-directory = input("파일이 위치한 디렉토리 경로를 입력하세요 (종료하려면 'exit' 입력): ")
-if directory.lower() == 'exit':
-    print("프로그램을 종료합니다.")
-    exit()
+while True:
+    directory = input("파일이 위치한 디렉토리 경로를 입력하세요 (종료하려면 'exit' 입력): ")
+    if directory.lower() == 'exit':
+        print("프로그램을 종료합니다.")
+        exit()
+    if not os.path.isdir(directory):
+        print("존재하지 않는 디렉토리입니다. 다시 입력해주세요.")
+    else:
+        break
 
 # 디렉토리 내의 파일 목록을 출력
 files = list_files(directory)
