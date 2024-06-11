@@ -1,6 +1,6 @@
 import os
 from gtts import gTTS
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTextEdit, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QTextEdit, QLineEdit, QPushButton, QVBoxLayout, QMessageBox, QFileDialog
 
 class TextToSpeechApp(QWidget):
     def __init__(self):
@@ -24,6 +24,10 @@ class TextToSpeechApp(QWidget):
         self.filename_input = QLineEdit()
         self.layout.addWidget(self.filename_input)
 
+        self.load_button = QPushButton("Load Text from File")
+        self.load_button.clicked.connect(self.load_text_from_file)
+        self.layout.addWidget(self.load_button)
+
         self.submit_button = QPushButton("Convert to Speech")
         self.submit_button.clicked.connect(self.on_submit)
         self.layout.addWidget(self.submit_button)
@@ -32,11 +36,20 @@ class TextToSpeechApp(QWidget):
 
         # Set tab order
         self.setTabOrder(self.text_input, self.filename_input)
-        self.setTabOrder(self.filename_input, self.submit_button)
+        self.setTabOrder(self.filename_input, self.load_button)
+        self.setTabOrder(self.load_button, self.submit_button)
 
         # Enter key triggers the submit action
         self.filename_input.returnPressed.connect(self.on_submit)
         self.text_input.textChanged.connect(self.on_text_change)
+
+    def load_text_from_file(self):
+        options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getOpenFileName(self, "Open Text File", "", "Text Files (*.txt)", options=options)
+        if file_path:
+            with open(file_path, 'r', encoding='utf-8') as file:
+                file_content = file.read()
+                self.text_input.setPlainText(file_content)
 
     def save_audio_file(self, text, folder='audio_files', filename='output'):
         # 폴더가 없다면 생성
