@@ -48,10 +48,16 @@ def on_file_select(event):
 def display_image(file_name):
     directory = entry_directory.get()
     file_path = os.path.join(directory, file_name)
-    image = Image.open(file_path)
-    image.thumbnail((200, 200))
-    photo = ImageTk.PhotoImage(image)
     
+    # 이미지 캐싱을 위해 전역 이미지 캐시 사용
+    if file_path not in image_cache:
+        image = Image.open(file_path)
+        image.thumbnail((200, 200))
+        photo = ImageTk.PhotoImage(image)
+        image_cache[file_path] = photo
+    else:
+        photo = image_cache[file_path]
+
     label_image.config(image=photo)
     label_image.image = photo
 
@@ -76,6 +82,9 @@ def on_rename_file():
         display_files(directory)
         entry_new_name.delete(0, tk.END)
         messagebox.showinfo("성공", "파일 이름이 성공적으로 변경되었습니다.")
+
+# 전역 이미지 캐시 딕셔너리
+image_cache = {}
 
 # GUI 설정
 root = tk.Tk()
