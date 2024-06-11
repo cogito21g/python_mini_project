@@ -27,6 +27,7 @@ class ImageRenamer(QWidget):
 
         self.listWidget = QListWidget(self)
         self.listWidget.clicked.connect(self.onFileSelect)
+        self.listWidget.currentRowChanged.connect(self.onFileSelect)
         self.leftLayout.addWidget(self.listWidget)
 
         # 이미지를 표시할 오른쪽 레이아웃
@@ -120,15 +121,22 @@ class ImageRenamer(QWidget):
         QMessageBox.information(self, "성공", "파일 이름이 성공적으로 변경되었습니다.")
 
     def keyPressEvent(self, event):
-        if self.newNameEdit.hasFocus():
-            if event.key() == Qt.Key_Up:
-                current_row = self.listWidget.currentRow()
-                if current_row > 0:
-                    self.listWidget.setCurrentRow(current_row - 1)
-            elif event.key() == Qt.Key_Down:
-                current_row = self.listWidget.currentRow()
-                if current_row < self.listWidget.count() - 1:
-                    self.listWidget.setCurrentRow(current_row + 1)
+        if event.key() == Qt.Key_Up:
+            current_row = self.listWidget.currentRow()
+            if current_row > 0:
+                self.listWidget.setCurrentRow(current_row - 1)
+                self.onFileSelect()
+        elif event.key() == Qt.Key_Down:
+            current_row = self.listWidget.currentRow()
+            if current_row < self.listWidget.count() - 1:
+                self.listWidget.setCurrentRow(current_row + 1)
+                self.onFileSelect()
+        elif event.key() == Qt.Key_Return or event.key() == Qt.Key_Enter:
+            if self.newNameEdit.hasFocus():
+                self.renameFile()
+            else:
+                self.newNameEdit.setFocus()
+                self.onFileSelect()
         else:
             super().keyPressEvent(event)
 
