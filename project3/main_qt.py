@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QHBoxLayout, QPu
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
 from PIL import Image
+from io import BytesIO
 
 class ImageRenamer(QWidget):
     def __init__(self):
@@ -71,6 +72,8 @@ class ImageRenamer(QWidget):
         self.imageCache.clear()
         self.files = [f for f in os.listdir(self.directory) if os.path.isfile(os.path.join(self.directory, f)) and f.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp'))]
         self.listWidget.addItems(self.files)
+        if self.files:
+            self.listWidget.setCurrentRow(0)  # 첫 번째 파일을 자동으로 선택
 
     def onFileSelect(self):
         selected_file = self.listWidget.currentItem()
@@ -82,8 +85,11 @@ class ImageRenamer(QWidget):
         if file_path not in self.imageCache:
             image = Image.open(file_path)
             image.thumbnail((400, 400))
-            image.save("temp_image.png")
-            pixmap = QPixmap("temp_image.png")
+            buffer = BytesIO()
+            image.save(buffer, format="PNG")
+            buffer.seek(0)
+            pixmap = QPixmap()
+            pixmap.loadFromData(buffer.read())
             self.imageCache[file_path] = pixmap
         else:
             pixmap = self.imageCache[file_path]
@@ -119,6 +125,12 @@ class ImageRenamer(QWidget):
         self.newNameEdit.clear()
         self.imageLabel.clear()  # 이미지 라벨 초기화
         QMessageBox.information(self, "성공", "파일 이름이 성공적으로 변경되었습니다.")
+        # 변경된 파일 선택 및 이미지 갱신
+        for i in range(self.listWidget.count()):
+            if self.listWidget.item(i).text() == new_name + file_extension:
+                self.listWidget.setCurrentRow(i)
+                self.onFileSelect()
+                break
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Up:
