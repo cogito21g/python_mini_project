@@ -17,21 +17,37 @@ def rename_file(directory, file, new_name):
     print(f"파일 이름 변경: {old_file} -> {new_file}")
 
 # 사용자 입력 받기
-directory = input("파일이 위치한 디렉토리 경로를 입력하세요: ")
+directory = input("파일이 위치한 디렉토리 경로를 입력하세요 (종료하려면 'exit' 입력): ")
+if directory.lower() == 'exit':
+    print("프로그램을 종료합니다.")
+    exit()
 
 # 디렉토리 내의 파일 목록을 출력
 files = list_files(directory)
 
 if files:
     # 파일 선택
-    file_index = int(input("이름을 변경할 파일의 번호를 선택하세요: ")) - 1
-    if 0 <= file_index < len(files):
-        selected_file = files[file_index]
-        new_name = input(f"새로운 파일명을 입력하세요: ")
+    while True:
+        file_index = input("이름을 변경할 파일의 번호를 선택하세요 (종료하려면 'exit' 입력): ")
+        if file_index.lower() == 'exit':
+            print("프로그램을 종료합니다.")
+            break
         
-        # 파일 이름 변경 함수 호출
-        rename_file(directory, selected_file, new_name)
-    else:
-        print("유효한 파일 번호를 선택하세요.")
+        if file_index.isdigit():
+            file_index = int(file_index) - 1
+            if 0 <= file_index < len(files):
+                selected_file = files[file_index]
+                new_name = input(f"새로운 파일명을 입력하세요 (종료하려면 'exit' 입력): ")
+                if new_name.lower() == 'exit':
+                    print("프로그램을 종료합니다.")
+                    break
+                
+                # 파일 이름 변경 함수 호출
+                rename_file(directory, selected_file, new_name)
+                break
+            else:
+                print("유효한 파일 번호를 선택하세요.")
+        else:
+            print("유효한 입력이 아닙니다. 숫자를 입력하거나 'exit'를 입력하세요.")
 else:
     print("변경할 수 있는 파일이 없습니다.")
