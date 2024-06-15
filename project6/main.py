@@ -3,7 +3,7 @@ import speech_recognition as sr
 from pydub import AudioSegment
 import os
 from tqdm import tqdm
-import time
+import io
 
 # 음성 파일을 텍스트로 변환하는 함수입니다.
 def convert_audio_to_text(audio_file_path):
@@ -16,24 +16,27 @@ def convert_audio_to_text(audio_file_path):
     
     # 파일 확장자에 따라 변환을 처리합니다.
     if file_extension == '.mp3':
-        print("MP3 파일을 WAV 파일로 변환 중...")
+        print("MP3 파일을 메모리에서 WAV 파일로 변환 중...")
         for _ in tqdm(range(100), desc="MP3 -> WAV 변환"):
-            time.sleep(0.01)  # 변환 시뮬레이션을 위해 딜레이를 추가합니다.
-        # MP3 파일을 WAV 파일로 변환합니다.
+            pass  # 변환 시뮬레이션을 위해 딜레이를 추가합니다.
+        # MP3 파일을 메모리에서 WAV 파일로 변환합니다.
         audio = AudioSegment.from_mp3(audio_file_path)
-        wav_path = audio_file_path.replace('.mp3', '.wav')
-        audio.export(wav_path, format='wav')
-        audio_file_path = wav_path
-        print(f"변환 완료: {wav_path}")
-    elif file_extension != '.wav':
+        wav_io = io.BytesIO()
+        audio.export(wav_io, format='wav')
+        wav_io.seek(0)
+        audio_file = wav_io
+        print("변환 완료")
+    elif file_extension == '.wav':
+        audio_file = audio_file_path
+    else:
         return "지원되지 않는 파일 형식입니다."
 
     print("음성 파일을 텍스트로 변환 중...")
     for _ in tqdm(range(100), desc="텍스트 변환"):
-        time.sleep(0.01)  # 변환 시뮬레이션을 위해 딜레이를 추가합니다.
+        pass  # 변환 시뮬레이션을 위해 딜레이를 추가합니다.
     
     # 음성 파일을 불러옵니다.
-    with sr.AudioFile(audio_file_path) as source:
+    with sr.AudioFile(audio_file) as source:
         # 오디오 데이터를 읽습니다.
         audio_data = recognizer.record(source)
 
