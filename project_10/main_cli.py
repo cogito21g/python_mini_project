@@ -1,18 +1,48 @@
 import os
+import threading
 from pydub import AudioSegment
 from pydub.playback import play
+import time
+
+# 글로벌 변수와 잠금을 사용하여 스레드 간의 동기화 처리
+stop_playback = False
+playback_thread = None
+playback_lock = threading.Lock()
 
 def play_audio(file_path):
+    global stop_playback
     audio = AudioSegment.from_file(file_path)
     play(audio)
 
+def playback_worker(file_path):
+    global stop_playback
+    audio = AudioSegment.from_file(file_path)
+    stop_playback = False
+    start_time = time.time()
+
+    # pydub playback의 대안을 구현하여 중지 기능 제공
+    while not stop_playback and time.time() - start_time < len(audio) / 1000.0:
+        play(audio[:1000])
+        audio = audio[1000:]
+
+def start_playback(file_path):
+    global playback_thread, stop_playback
+    stop_playback = False
+    playback_thread = threading.Thread(target=playback_worker, args=(file_path,))
+    playback_thread.start()
+
+def stop_playback_func():
+    global stop_playback
+    with playback_lock:
+        stop_playback = True
+    if playback_thread:
+        playback_thread.join()
+
 def rename_audio_files(directory, new_name):
-    # 디렉토리가 없으면 생성
     if not os.path.exists(directory):
         os.makedirs(directory)
         print(f"Directory {directory} created.")
     
-    # 디렉토리 내의 모든 파일에 대해 반복
     mp3_files = [f for f in os.listdir(directory) if f.endswith(".mp3")]
     
     if not mp3_files:
@@ -24,25 +54,29 @@ def rename_audio_files(directory, new_name):
         print(f"{idx}. {filename}")
     
     while True:
-        selection = input("Enter the number or name of the file you want to play (or 'q' to quit): ").strip()
+        selection = input("Enter the number or name of the file you want to play (or 'q' to quit, 's' to stop): ").strip()
         
         if selection.lower() == 'q':
             break
         
+        if selection.lower() == 's':
+            stop_playback_func()
+            continue
+        
         try:
-            # 사용자가 번호를 입력한 경우
             if selection.isdigit():
                 index = int(selection) - 1
                 if 0 <= index < len(mp3_files):
                     file_path = os.path.join(directory, mp3_files[index])
-                    play_audio(file_path)
+                    stop_playback_func()  # 이전 재생 중지
+                    start_playback(file_path)
                 else:
                     print("Invalid number. Please try again.")
             else:
-                # 사용자가 파일 이름을 입력한 경우
                 if selection in mp3_files:
                     file_path = os.path.join(directory, selection)
-                    play_audio(file_path)
+                    stop_playback_func()  # 이전 재생 중지
+                    start_playback(file_path)
                 else:
                     print("Invalid name. Please try again.")
         except Exception as e:
@@ -50,12 +84,9 @@ def rename_audio_files(directory, new_name):
     
     for filename in mp3_files:
         file_path = os.path.join(directory, filename)
-        
-        # 파일명 변경
         base, ext = os.path.splitext(filename)
         new_filename = f"{new_name}_{base}{ext}"
         new_file_path = os.path.join(directory, new_filename)
-        
         os.rename(file_path, new_file_path)
         print(f"Renamed {filename} to {new_filename}")
 
