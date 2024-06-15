@@ -1,15 +1,8 @@
 import os
-import threading
 import pygame
-import time
 
 # 초기화
 pygame.mixer.init()
-
-# 글로벌 변수와 잠금을 사용하여 스레드 간의 동기화 처리
-stop_playback = False
-playback_thread = None
-playback_lock = threading.Lock()
 
 def play_audio(file_path):
     pygame.mixer.music.load(file_path)
@@ -18,7 +11,7 @@ def play_audio(file_path):
 def stop_playback_func():
     pygame.mixer.music.stop()
 
-def rename_audio_files(directory, new_name, text_directory):
+def rename_audio_files(directory, text_directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
         print(f"Directory {directory} created.")
@@ -55,11 +48,15 @@ def rename_audio_files(directory, new_name, text_directory):
                     file_path = os.path.join(directory, mp3_files[index])
                     stop_playback_func()  # 이전 재생 중지
                     play_audio(file_path)
-                    new_filename = input(f"Enter the new name for {mp3_files[index]}: ").strip() + ".mp3"
+                    new_filename = input(f"Enter the new name for {mp3_files[index]} (without extension): ").strip() + ".mp3"
                     new_file_path = os.path.join(directory, new_filename)
+                    if os.path.exists(new_file_path):
+                        print(f"File {new_filename} already exists. Choose a different name.")
+                        continue
                     os.rename(file_path, new_file_path)
                     print(f"Renamed {mp3_files[index]} to {new_filename}")
-                    write_info_file(text_directory, new_filename)
+                    text_info = input("Enter the information to be saved in the text file: ").strip()
+                    write_info_file(text_directory, new_filename, text_info)
                 else:
                     print("Invalid number. Please try again.")
             else:
@@ -67,25 +64,30 @@ def rename_audio_files(directory, new_name, text_directory):
                     file_path = os.path.join(directory, selection)
                     stop_playback_func()  # 이전 재생 중지
                     play_audio(file_path)
-                    new_filename = input(f"Enter the new name for {selection}: ").strip() + ".mp3"
+                    new_filename = input(f"Enter the new name for {selection} (without extension): ").strip() + ".mp3"
                     new_file_path = os.path.join(directory, new_filename)
+                    if os.path.exists(new_file_path):
+                        print(f"File {new_filename} already exists. Choose a different name.")
+                        continue
                     os.rename(file_path, new_file_path)
                     print(f"Renamed {selection} to {new_filename}")
-                    write_info_file(text_directory, new_filename)
+                    text_info = input("Enter the information to be saved in the text file: ").strip()
+                    write_info_file(text_directory, new_filename, text_info)
                 else:
                     print("Invalid name. Please try again.")
         except Exception as e:
             print(f"An error occurred: {e}")
     
-def write_info_file(text_directory, new_filename):
+def write_info_file(text_directory, new_filename, text_info):
     text_file_path = os.path.join(text_directory, os.path.splitext(new_filename)[0] + ".txt")
+    if os.path.exists(text_file_path):
+        print(f"Text file {text_file_path} already exists. Overwriting...")
     with open(text_file_path, "w") as file:
-        file.write(f"File {new_filename} was renamed and stored in the directory.\n")
+        file.write(text_info)
     print(f"Information written to {text_file_path}")
 
-# 디렉토리 경로와 새 파일명을 지정합니다.
+# 디렉토리 경로를 지정합니다.
 audio_directory = 'audio_files'
-new_name = 'new_audio_name'
 text_directory = 'text_files'
 
-rename_audio_files(audio_directory, new_name, text_directory)
+rename_audio_files(audio_directory, text_directory)
