@@ -90,11 +90,6 @@ class AudioToTextApp(QMainWindow):
         self.convert_button.clicked.connect(self.convert_selected_file)
         self.audio_files_layout.addWidget(self.convert_button)
 
-        # 오디오 파일 삭제 버튼
-        self.delete_audio_button = QPushButton("오디오 파일 삭제")
-        self.delete_audio_button.clicked.connect(self.delete_selected_audio_file)
-        self.audio_files_layout.addWidget(self.delete_audio_button)
-
         self.layout.addLayout(self.audio_files_layout)
 
         # 텍스트 파일 목록 레이아웃
@@ -106,12 +101,12 @@ class AudioToTextApp(QMainWindow):
         self.update_text_file_list()
         self.text_files_layout.addWidget(self.text_file_list)
 
-        # 텍스트 파일 삭제 버튼
-        self.delete_text_button = QPushButton("텍스트 파일 삭제")
-        self.delete_text_button.clicked.connect(self.delete_selected_text_file)
-        self.text_files_layout.addWidget(self.delete_text_button)
-
         self.layout.addLayout(self.text_files_layout)
+
+        # 삭제 버튼
+        self.delete_button = QPushButton("삭제")
+        self.delete_button.clicked.connect(self.delete_selected_file)
+        self.layout.addWidget(self.delete_button)
 
         # 종료 버튼
         self.exit_button = QPushButton("종료")
@@ -178,35 +173,32 @@ class AudioToTextApp(QMainWindow):
         QMessageBox.information(self, "Information", message)
         self.update_text_file_list()
 
-    # 선택된 오디오 파일 삭제
-    def delete_selected_audio_file(self):
-        selected_items = self.audio_file_list.selectedItems()
-        if not selected_items:
+    # 선택된 파일 삭제
+    def delete_selected_file(self):
+        selected_audio_items = self.audio_file_list.selectedItems()
+        selected_text_items = self.text_file_list.selectedItems()
+
+        if not selected_audio_items and not selected_text_items:
             QMessageBox.warning(self, "Warning", "파일을 선택하세요")
             return
 
-        audio_file_name = selected_items[0].text()
-        audio_file_path = f"audio_files/{audio_file_name}"
+        if selected_audio_items:
+            file_name = selected_audio_items[0].text()
+            file_path = f"audio_files/{file_name}"
 
-        reply = QMessageBox.question(self, "확인", f"{audio_file_name}을(를) 삭제하시겠습니까?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            os.remove(audio_file_path)
-            self.update_audio_file_list()
+            reply = QMessageBox.question(self, "확인", f"{file_name}을(를) 삭제하시겠습니까?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                os.remove(file_path)
+                self.update_audio_file_list()
 
-    # 선택된 텍스트 파일 삭제
-    def delete_selected_text_file(self):
-        selected_items = self.text_file_list.selectedItems()
-        if not selected_items:
-            QMessageBox.warning(self, "Warning", "파일을 선택하세요")
-            return
+        if selected_text_items:
+            file_name = selected_text_items[0].text()
+            file_path = f"text_files/{file_name}"
 
-        text_file_name = selected_items[0].text()
-        text_file_path = f"text_files/{text_file_name}"
-
-        reply = QMessageBox.question(self, "확인", f"{text_file_name}을(를) 삭제하시겠습니까?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
-        if reply == QMessageBox.Yes:
-            os.remove(text_file_path)
-            self.update_text_file_list()
+            reply = QMessageBox.question(self, "확인", f"{file_name}을(를) 삭제하시겠습니까?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                os.remove(file_path)
+                self.update_text_file_list()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
