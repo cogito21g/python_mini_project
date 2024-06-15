@@ -61,6 +61,10 @@ def convert_audio_to_text(audio_file_path):
             # API 요청 에러가 발생한 경우
             print(f"API 요청 에러: {e}")
             return f"API 요청 에러: {e}"
+        finally:
+            # 메모리 해제를 위해 BytesIO 객체를 닫습니다.
+            if isinstance(audio_file, io.BytesIO):
+                audio_file.close()
 
 # 음성 파일 변환을 반복적으로 수행합니다.
 while True:
