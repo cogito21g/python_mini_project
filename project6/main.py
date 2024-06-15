@@ -4,6 +4,7 @@ from pydub import AudioSegment
 import os
 from tqdm import tqdm
 import io
+import shutil
 
 # 음성 파일을 텍스트로 변환하는 함수입니다.
 def convert_audio_to_text(audio_file_path):
@@ -12,7 +13,7 @@ def convert_audio_to_text(audio_file_path):
     
     # 파일 확장자를 확인합니다.
     file_extension = os.path.splitext(audio_file_path)[1].lower()
-    file_name = os.path.splitext(audio_file_path)[0]
+    file_name = os.path.splitext(os.path.basename(audio_file_path))[0]
     print(f"파일 확장자 확인: {file_extension}")
     
     # 파일 확장자에 따라 변환을 처리합니다.
@@ -47,7 +48,7 @@ def convert_audio_to_text(audio_file_path):
             print("변환 성공!")
 
             # 변환된 텍스트를 파일로 저장합니다.
-            text_file_path = f"{file_name}.txt"
+            text_file_path = f"text_files/{file_name}.txt"
             with open(text_file_path, 'w', encoding='utf-8') as text_file:
                 text_file.write(text)
             print(f"텍스트가 파일로 저장되었습니다: {text_file_path}")
@@ -66,6 +67,13 @@ def convert_audio_to_text(audio_file_path):
             if isinstance(audio_file, io.BytesIO):
                 audio_file.close()
 
+# 폴더 생성 함수
+def create_folders():
+    if not os.path.exists('audio_files'):
+        os.makedirs('audio_files')
+    if not os.path.exists('text_files'):
+        os.makedirs('text_files')
+
 # 음성 파일 변환을 반복적으로 수행합니다.
 while True:
     # 사용자로부터 음성 파일 경로를 입력받습니다.
@@ -76,9 +84,16 @@ while True:
         print("프로그램을 종료합니다.")
         break
 
+    # 폴더 생성
+    create_folders()
+
     # 음성 파일을 텍스트로 변환합니다.
     text = convert_audio_to_text(audio_file_path)
 
     # 변환된 텍스트를 출력합니다.
     if text:
         print(f"변환된 텍스트: {text}")
+
+        # 음성 파일을 audio_files 폴더로 이동합니다.
+        shutil.move(audio_file_path, f"audio_files/{os.path.basename(audio_file_path)}")
+        print(f"음성 파일이 audio_files 폴더로 이동되었습니다: audio_files/{os.path.basename(audio_file_path)}")
