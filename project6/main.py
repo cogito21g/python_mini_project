@@ -5,9 +5,10 @@ import os
 from tqdm import tqdm
 import io
 import shutil
+from datetime import datetime
 
 # 음성 파일을 텍스트로 변환하는 함수입니다.
-def convert_audio_to_text(audio_file_path):
+def convert_audio_to_text(audio_file_path, log_file):
     # Recognizer 객체를 생성합니다.
     recognizer = sr.Recognizer()
     
@@ -15,6 +16,15 @@ def convert_audio_to_text(audio_file_path):
     file_extension = os.path.splitext(audio_file_path)[1].lower()
     file_name = os.path.splitext(os.path.basename(audio_file_path))[0]
     print(f"파일 확장자 확인: {file_extension}")
+    
+    # 변환된 텍스트 파일 경로
+    text_file_path = f"text_files/{file_name}.txt"
+    
+    # 텍스트 파일이 이미 존재하는지 확인
+    if os.path.exists(text_file_path):
+        print(f"{text_file_path} 이미 존재합니다. 변환을 건너뜁니다.")
+        log_file.write(f"{datetime.now()} - {audio_file_path} - 이미 존재함\n")
+        return None
     
     # 파일 확장자에 따라 변환을 처리합니다.
     if file_extension == '.mp3':
@@ -31,6 +41,8 @@ def convert_audio_to_text(audio_file_path):
     elif file_extension == '.wav':
         audio_file = audio_file_path
     else:
+        print("지원되지 않는 파일 형식입니다.")
+        log_file.write(f"{datetime.now()} - {audio_file_path} - 지원되지 않는 파일 형식\n")
         return "지원되지 않는 파일 형식입니다."
 
     print("음성 파일을 텍스트로 변환 중...")
@@ -48,19 +60,21 @@ def convert_audio_to_text(audio_file_path):
             print("변환 성공!")
 
             # 변환된 텍스트를 파일로 저장합니다.
-            text_file_path = f"text_files/{file_name}.txt"
             with open(text_file_path, 'w', encoding='utf-8') as text_file:
                 text_file.write(text)
             print(f"텍스트가 파일로 저장되었습니다: {text_file_path}")
+            log_file.write(f"{datetime.now()} - {audio_file_path} - 변환 성공\n")
 
             return text
         except sr.UnknownValueError:
             # 음성을 인식할 수 없는 경우
             print("음성을 인식할 수 없습니다.")
+            log_file.write(f"{datetime.now()} - {audio_file_path} - 음성을 인식할 수 없음\n")
             return "음성을 인식할 수 없습니다."
         except sr.RequestError as e:
             # API 요청 에러가 발생한 경우
             print(f"API 요청 에러: {e}")
+            log_file.write(f"{datetime.now()} - {audio_file_path} - API 요청 에러: {e}\n")
             return f"API 요청 에러: {e}"
         finally:
             # 메모리 해제를 위해 BytesIO 객체를 닫습니다.
@@ -108,17 +122,19 @@ def select_audio_file():
 create_folders()
 move_audio_files_to_folder()
 
-# 음성 파일 변환을 반복적으로 수행합니다.
-while True:
-    # 'exit' 명령어가 입력되면 프로그램을 종료합니다.
-    audio_file_path = select_audio_file()
-    if not audio_file_path:
-        print("프로그램을 종료합니다.")
-        break
+# 로그 파일을 엽니다.
+with open('conversion_log.txt', 'a', encoding='utf-8') as log_file:
+    # 음성 파일 변환을 반복적으로 수행합니다.
+    while True:
+        # 'exit' 명령어가 입력되면 프로그램을 종료합니다.
+        audio_file_path = select_audio_file()
+        if not audio_file_path:
+            print("프로그램을 종료합니다.")
+            break
 
-    # 음성 파일을 텍스트로 변환합니다.
-    text = convert_audio_to_text(audio_file_path)
+        # 음성 파일을 텍스트로 변환합니다.
+        text = convert_audio_to_text(audio_file_path, log_file)
 
-    # 변환된 텍스트를 출력합니다.
-    if text:
-        print(f"변환된 텍스트: {text}")
+        # 변환된 텍스트를 출력합니다.
+        if text:
+            print(f"변환된 텍스트: {text}")
