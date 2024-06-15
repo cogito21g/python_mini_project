@@ -62,12 +62,19 @@ def convert_audio_to_text(audio_file_path):
             print(f"API 요청 에러: {e}")
             return f"API 요청 에러: {e}"
 
-# 사용자로부터 음성 파일 경로를 입력받습니다.
-audio_file_path = input("변환할 음성 파일의 경로를 입력하세요: ")
+# 음성 파일 변환을 반복적으로 수행합니다.
+while True:
+    # 사용자로부터 음성 파일 경로를 입력받습니다.
+    audio_file_path = input("변환할 음성 파일의 경로를 입력하세요 (종료하려면 'exit' 입력): ")
+    
+    # 'exit' 명령어가 입력되면 프로그램을 종료합니다.
+    if audio_file_path.lower() == 'exit':
+        print("프로그램을 종료합니다.")
+        break
 
-# 음성 파일을 텍스트로 변환합니다.
-text = convert_audio_to_text(audio_file_path)
+    # 음성 파일을 텍스트로 변환합니다.
+    text = convert_audio_to_text(audio_file_path)
 
-# 변환된 텍스트를 출력합니다.
-if text:
-    print(f"변환된 텍스트: {text}")
+    # 변환된 텍스트를 출력합니다.
+    if text:
+        print(f"변환된 텍스트: {text}")
