@@ -3,7 +3,7 @@ import os
 import shutil
 import io
 from datetime import datetime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QListWidget, QPushButton, QVBoxLayout, QWidget, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QListWidget, QPushButton, QVBoxLayout, QWidget, QLabel, QHBoxLayout
 from PyQt5.QtCore import Qt
 import speech_recognition as sr
 from pydub import AudioSegment
@@ -13,23 +13,36 @@ class AudioToTextApp(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("Audio to Text Converter")
-        self.setGeometry(100, 100, 600, 400)
+        self.setGeometry(100, 100, 800, 400)
 
         self.create_folders()
         self.move_audio_files_to_folder()
 
-        self.layout = QVBoxLayout()
+        self.layout = QHBoxLayout()
 
-        self.label = QLabel("audio_files 폴더 내의 파일 목록:")
-        self.layout.addWidget(self.label)
+        self.audio_files_layout = QVBoxLayout()
+        self.audio_files_label = QLabel("audio_files 폴더 내의 파일 목록:")
+        self.audio_files_layout.addWidget(self.audio_files_label)
 
-        self.file_list = QListWidget()
-        self.update_file_list()
-        self.layout.addWidget(self.file_list)
+        self.audio_file_list = QListWidget()
+        self.update_audio_file_list()
+        self.audio_files_layout.addWidget(self.audio_file_list)
 
         self.convert_button = QPushButton("변환")
         self.convert_button.clicked.connect(self.convert_selected_file)
-        self.layout.addWidget(self.convert_button)
+        self.audio_files_layout.addWidget(self.convert_button)
+
+        self.layout.addLayout(self.audio_files_layout)
+
+        self.text_files_layout = QVBoxLayout()
+        self.text_files_label = QLabel("변환된 텍스트 파일 목록:")
+        self.text_files_layout.addWidget(self.text_files_label)
+
+        self.text_file_list = QListWidget()
+        self.update_text_file_list()
+        self.text_files_layout.addWidget(self.text_file_list)
+
+        self.layout.addLayout(self.text_files_layout)
 
         self.exit_button = QPushButton("종료")
         self.exit_button.clicked.connect(self.close)
@@ -53,14 +66,20 @@ class AudioToTextApp(QMainWindow):
             if os.path.isfile(file) and os.path.splitext(file)[1].lower() in audio_extensions:
                 shutil.move(file, f"audio_files/{file}")
 
-    def update_file_list(self):
-        self.file_list.clear()
+    def update_audio_file_list(self):
+        self.audio_file_list.clear()
         files = os.listdir('audio_files')
         for file in files:
-            self.file_list.addItem(file)
+            self.audio_file_list.addItem(file)
+
+    def update_text_file_list(self):
+        self.text_file_list.clear()
+        files = os.listdir('text_files')
+        for file in files:
+            self.text_file_list.addItem(file)
 
     def convert_selected_file(self):
-        selected_items = self.file_list.selectedItems()
+        selected_items = self.audio_file_list.selectedItems()
         if not selected_items:
             QMessageBox.warning(self, "Warning", "파일을 선택하세요")
             return
@@ -73,6 +92,7 @@ class AudioToTextApp(QMainWindow):
             result = self.convert_audio_to_text(audio_file_path, log_file)
             if result:
                 QMessageBox.information(self, "Information", result)
+                self.update_text_file_list()
 
     def convert_audio_to_text(self, audio_file_path, log_file):
         recognizer = sr.Recognizer()
