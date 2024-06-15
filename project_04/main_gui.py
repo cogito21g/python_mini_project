@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import messagebox
 from gtts import gTTS
 
 def ensure_directories():
@@ -38,23 +38,42 @@ def convert_and_save():
     """
     텍스트를 입력받아 오디오 파일과 텍스트 파일로 저장하는 함수입니다.
     """
-    text = text_input.get("1.0", tk.END).strip()
-    filename = filename_input.get().strip()
-    language = language_input.get().strip() or 'en'
+    try:
+        text = text_input.get("1.0", tk.END).strip()
+        filename = filename_input.get().strip()
+        language = language_input.get().strip() or 'en'
 
-    if not text:
-        status_label.config(text="텍스트를 입력하세요.")
-        return
+        if not text:
+            status_label.config(text="텍스트를 입력하세요.")
+            return
 
-    if not filename:
-        status_label.config(text="파일 이름을 입력하세요.")
-        return
+        if not filename:
+            status_label.config(text="파일 이름을 입력하세요.")
+            return
 
-    audio_filename = f"{filename}.mp3"
-    ensure_directories()
-    audio_path, text_path = save_files(text, audio_filename, language)
+        audio_filename = f"{filename}.mp3"
+        audio_path = os.path.join("audio_files", audio_filename)
+        text_path = os.path.join("text_files", audio_filename.replace(".mp3", ".txt"))
 
-    status_label.config(text=f"파일이 저장되었습니다: \n오디오 - {audio_path}\n텍스트 - {text_path}")
+        # 중복 파일 확인
+        if os.path.exists(audio_path) or os.path.exists(text_path):
+            messagebox.showerror("파일 중복", "이미 존재하는 파일입니다. 다른 파일 이름을 선택하세요.")
+            return
+
+        ensure_directories()
+        audio_path, text_path = save_files(text, audio_filename, language)
+
+        status_label.config(text=f"파일이 저장되었습니다: \n오디오 - {audio_path}\n텍스트 - {text_path}")
+    except Exception as e:
+        messagebox.showerror("오류", f"오류가 발생했습니다: {e}. 프로그램을 재시작합니다.")
+        restart_program()
+
+def restart_program():
+    """
+    프로그램을 재시작하는 함수입니다.
+    """
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
 
 # GUI 설정
 app = tk.Tk()
