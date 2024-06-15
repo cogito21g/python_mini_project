@@ -72,15 +72,23 @@ if __name__ == "__main__":
     # 디렉토리 생성
     audio_dir, text_dir = create_directories(language_code.split('-')[0])
     
-    # 파일명 입력
-    file_name = input("Enter the base name for the files (without extension): ")
-    audio_filename = os.path.join(audio_dir, f"{file_name}.mp3")
-    text_filename = os.path.join(text_dir, f"{file_name}.txt")
-    
-    # 마이크로부터 음성 입력 받아 텍스트로 변환
-    text = record_audio(language_code)
-    if text:
-        # 변환된 텍스트를 음성 파일로 저장
-        text_to_speech(text, tts_language, audio_filename)
-        # 변환된 텍스트를 텍스트 파일로 저장
-        save_text_to_file(text, text_filename)
+    while True:
+        # 파일명 입력
+        file_name = input("Enter the base name for the files (without extension, type 'exit' to quit): ")
+        if file_name.lower() == 'exit':
+            break
+        
+        audio_filename = os.path.join(audio_dir, f"{file_name}.mp3")
+        text_filename = os.path.join(text_dir, f"{file_name}.txt")
+        
+        if os.path.exists(audio_filename) or os.path.exists(text_filename):
+            print("A file with that name already exists. Please choose a different name.")
+            continue
+        
+        # 마이크로부터 음성 입력 받아 텍스트로 변환
+        text = record_audio(language_code)
+        if text:
+            # 변환된 텍스트를 음성 파일로 저장
+            text_to_speech(text, tts_language, audio_filename)
+            # 변환된 텍스트를 텍스트 파일로 저장
+            save_text_to_file(text, text_filename)
