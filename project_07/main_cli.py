@@ -79,22 +79,37 @@ def convert_audio_to_text(audio_file_path):
     except ValueError as ve:
         print(ve)
 
-# Move all supported audio files to the audio_files directory
-move_files_to_audio_folder()
+def main():
+    # Move all supported audio files to the audio_files directory
+    move_files_to_audio_folder()
 
-# List all audio files in the audio_files directory
-audio_files = os.listdir('audio_files')
-if not audio_files:
-    print("No audio files found in the audio_files directory.")
-else:
-    print("Available audio files:")
-    for idx, file_name in enumerate(audio_files, start=1):
-        print(f"{idx}. {file_name}")
+    while True:
+        # List all audio files in the audio_files directory
+        audio_files = os.listdir('audio_files')
+        if not audio_files:
+            print("No audio files found in the audio_files directory.")
+        else:
+            print("\nAvailable audio files:")
+            for idx, file_name in enumerate(audio_files, start=1):
+                print(f"{idx}. {file_name}")
 
-    # Get the user's choice of audio file
-    choice = int(input("Enter the number of the audio file to transcribe: "))
-    chosen_file = audio_files[choice - 1]
-    chosen_file_path = os.path.join('audio_files', chosen_file)
+        # Get the user's choice of audio file
+        choice = input("Enter the number of the audio file to transcribe (or type 'exit' to quit): ")
 
-    # Convert the chosen audio file to text
-    convert_audio_to_text(chosen_file_path)
+        if choice.lower() == 'exit':
+            break
+
+        try:
+            choice_num = int(choice)
+            if 1 <= choice_num <= len(audio_files):
+                chosen_file = audio_files[choice_num - 1]
+                chosen_file_path = os.path.join('audio_files', chosen_file)
+                # Convert the chosen audio file to text
+                convert_audio_to_text(chosen_file_path)
+            else:
+                print("Invalid choice. Please enter a number corresponding to the listed files.")
+        except ValueError:
+            print("Invalid input. Please enter a number or 'exit'.")
+
+if __name__ == "__main__":
+    main()
