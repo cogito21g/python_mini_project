@@ -1,5 +1,6 @@
 import speech_recognition as sr
 from gtts import gTTS
+import os
 
 def choose_language():
     print("Choose the language for speech recognition:")
@@ -13,16 +14,16 @@ def choose_language():
     choice = input("Enter the number of your choice: ")
     
     language_mapping = {
-        '1': 'en-US',
-        '2': 'ko-KR',
-        '3': 'zh-CN',
-        '4': 'ja-JP',
-        '5': 'es-ES',
-        '6': 'de-DE',
-        '7': 'fr-FR'
+        '1': ('en-US', 'en'),
+        '2': ('ko-KR', 'ko'),
+        '3': ('zh-CN', 'zh'),
+        '4': ('ja-JP', 'ja'),
+        '5': ('es-ES', 'es'),
+        '6': ('de-DE', 'de'),
+        '7': ('fr-FR', 'fr')
     }
     
-    return language_mapping.get(choice, 'en-US')
+    return language_mapping.get(choice, ('en-US', 'en'))
 
 def record_audio(language):
     # 음성 인식 객체 생성
@@ -45,26 +46,38 @@ def record_audio(language):
         print("Could not request results from Google Speech Recognition service; {0}".format(e))
         return None
 
-def text_to_speech(text, language, output_audio_filename="output_audio.mp3"):
+def text_to_speech(text, language, output_audio_filename):
     # 텍스트를 음성으로 변환
     tts = gTTS(text=text, lang=language)
     # 음성 파일 저장
     tts.save(output_audio_filename)
     print(f"Saved audio to {output_audio_filename}")
 
-def save_text_to_file(text, output_text_filename="output_text.txt"):
+def save_text_to_file(text, output_text_filename):
     # 텍스트 파일 저장
     with open(output_text_filename, "w", encoding="utf-8") as text_file:
         text_file.write(text)
     print(f"Saved text to {output_text_filename}")
 
+def create_directories(language_code):
+    audio_dir = os.path.join('audio_files', language_code)
+    text_dir = os.path.join('text_files', language_code)
+    os.makedirs(audio_dir, exist_ok=True)
+    os.makedirs(text_dir, exist_ok=True)
+    return audio_dir, text_dir
+
 if __name__ == "__main__":
     # 언어 선택
-    language_code = choose_language()
+    language_code, tts_language = choose_language()
+    # 디렉토리 생성
+    audio_dir, text_dir = create_directories(language_code.split('-')[0])
     # 마이크로부터 음성 입력 받아 텍스트로 변환
     text = record_audio(language_code)
     if text:
+        # 파일명 설정
+        audio_filename = os.path.join(audio_dir, "output_audio.mp3")
+        text_filename = os.path.join(text_dir, "output_text.txt")
         # 변환된 텍스트를 음성 파일로 저장
-        text_to_speech(text, language_code.split('-')[0])
+        text_to_speech(text, tts_language, audio_filename)
         # 변환된 텍스트를 텍스트 파일로 저장
-        save_text_to_file(text)
+        save_text_to_file(text, text_filename)
