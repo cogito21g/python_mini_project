@@ -1,7 +1,21 @@
 import os
+import shutil
 import speech_recognition as sr
 from pydub import AudioSegment
 from io import BytesIO
+
+# Ensure the audio_files and text_files directories exist
+os.makedirs('audio_files', exist_ok=True)
+os.makedirs('text_files', exist_ok=True)
+
+def move_files_to_audio_folder():
+    """
+    Move all audio files from the current directory to the audio_files directory.
+    """
+    supported_formats = ('.mp3', '.wav', '.ogg', '.flv', '.mp4', '.wma')
+    for file_name in os.listdir('.'):
+        if file_name.lower().endswith(supported_formats):
+            shutil.move(file_name, os.path.join('audio_files', file_name))
 
 def convert_audio_to_text(audio_file_path):
     """
@@ -12,7 +26,7 @@ def convert_audio_to_text(audio_file_path):
     """
     # Get the file name without extension
     base_name = os.path.splitext(os.path.basename(audio_file_path))[0]
-    output_text_file = f"{base_name}.txt"
+    output_text_file = os.path.join('text_files', f"{base_name}.txt")
 
     # Check if the transcription file already exists
     if os.path.exists(output_text_file):
@@ -65,6 +79,22 @@ def convert_audio_to_text(audio_file_path):
     except ValueError as ve:
         print(ve)
 
-# Example usage
-audio_file_path = input("Enter the path to the audio file: ")  # Get the audio file path from user input
-convert_audio_to_text(audio_file_path)
+# Move all supported audio files to the audio_files directory
+move_files_to_audio_folder()
+
+# List all audio files in the audio_files directory
+audio_files = os.listdir('audio_files')
+if not audio_files:
+    print("No audio files found in the audio_files directory.")
+else:
+    print("Available audio files:")
+    for idx, file_name in enumerate(audio_files, start=1):
+        print(f"{idx}. {file_name}")
+
+    # Get the user's choice of audio file
+    choice = int(input("Enter the number of the audio file to transcribe: "))
+    chosen_file = audio_files[choice - 1]
+    chosen_file_path = os.path.join('audio_files', chosen_file)
+
+    # Convert the chosen audio file to text
+    convert_audio_to_text(chosen_file_path)
