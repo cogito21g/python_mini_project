@@ -288,7 +288,7 @@ python main_cli.py
 
 
 
-### Project_10: 음성 파일 이름 변경 및 정보 저장하기
+### Project_10: [음성 파일 이름 변경 및 정보 저장하기](./project_10/)
 
 1. 디렉토리 생성 및 확인
 - audio_files와 text_files 디렉토리가 존재하지 않을 경우 자동으로 생성
@@ -321,12 +321,8 @@ python main_cli.py
 - 
 
 
-### Project_11: 이미지 파일 이름 변경 및 정보 저장하기
+### Project_11: 
 
-1. 이미지 파일 확인
-2. 파일명, 정보 입력
-- 파일명은 변경
-- 정보는 해당 파일명의 텍스트로 변경
 
 ##### Usage
 ```python
