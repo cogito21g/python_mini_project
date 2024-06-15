@@ -74,18 +74,47 @@ def create_folders():
     if not os.path.exists('text_files'):
         os.makedirs('text_files')
 
+# 음성 파일을 audio_files 폴더로 이동하는 함수
+def move_audio_files_to_folder():
+    audio_extensions = ['.mp3', '.wav']
+    for file in os.listdir('.'):
+        if os.path.isfile(file) and os.path.splitext(file)[1].lower() in audio_extensions:
+            shutil.move(file, f"audio_files/{file}")
+            print(f"{file}이(가) audio_files 폴더로 이동되었습니다.")
+
+# audio_files 폴더 내의 파일 목록을 보여주고 파일을 선택하는 함수
+def select_audio_file():
+    files = os.listdir('audio_files')
+    if not files:
+        print("audio_files 폴더에 파일이 없습니다.")
+        return None
+    
+    print("audio_files 폴더 내의 파일 목록:")
+    for idx, file in enumerate(files, start=1):
+        print(f"{idx}. {file}")
+    
+    while True:
+        selection = input("파일 번호 또는 이름을 입력하세요: ")
+        if selection.isdigit():
+            idx = int(selection) - 1
+            if 0 <= idx < len(files):
+                return f"audio_files/{files[idx]}"
+        elif selection in files:
+            return f"audio_files/{selection}"
+        else:
+            print("유효하지 않은 입력입니다. 다시 시도하세요.")
+
+# 초기 폴더 생성 및 파일 이동
+create_folders()
+move_audio_files_to_folder()
+
 # 음성 파일 변환을 반복적으로 수행합니다.
 while True:
-    # 사용자로부터 음성 파일 경로를 입력받습니다.
-    audio_file_path = input("변환할 음성 파일의 경로를 입력하세요 (종료하려면 'exit' 입력): ")
-    
     # 'exit' 명령어가 입력되면 프로그램을 종료합니다.
-    if audio_file_path.lower() == 'exit':
+    audio_file_path = select_audio_file()
+    if not audio_file_path:
         print("프로그램을 종료합니다.")
         break
-
-    # 폴더 생성
-    create_folders()
 
     # 음성 파일을 텍스트로 변환합니다.
     text = convert_audio_to_text(audio_file_path)
@@ -93,7 +122,3 @@ while True:
     # 변환된 텍스트를 출력합니다.
     if text:
         print(f"변환된 텍스트: {text}")
-
-        # 음성 파일을 audio_files 폴더로 이동합니다.
-        shutil.move(audio_file_path, f"audio_files/{os.path.basename(audio_file_path)}")
-        print(f"음성 파일이 audio_files 폴더로 이동되었습니다: audio_files/{os.path.basename(audio_file_path)}")
