@@ -62,11 +62,12 @@ def convert_audio_to_text(audio_file_path):
             print(f"API 요청 에러: {e}")
             return f"API 요청 에러: {e}"
 
-# 변환할 음성 파일 경로를 지정합니다.
-audio_file_path = "test.mp3"  # 확장자를 포함한 파일 경로
+# 사용자로부터 음성 파일 경로를 입력받습니다.
+audio_file_path = input("변환할 음성 파일의 경로를 입력하세요: ")
 
 # 음성 파일을 텍스트로 변환합니다.
 text = convert_audio_to_text(audio_file_path)
 
 # 변환된 텍스트를 출력합니다.
-print(f"변환된 텍스트: {text}")
+if text:
+    print(f"변환된 텍스트: {text}")
