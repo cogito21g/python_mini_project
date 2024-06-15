@@ -71,12 +71,15 @@ if __name__ == "__main__":
     language_code, tts_language = choose_language()
     # 디렉토리 생성
     audio_dir, text_dir = create_directories(language_code.split('-')[0])
+    
+    # 파일명 입력
+    file_name = input("Enter the base name for the files (without extension): ")
+    audio_filename = os.path.join(audio_dir, f"{file_name}.mp3")
+    text_filename = os.path.join(text_dir, f"{file_name}.txt")
+    
     # 마이크로부터 음성 입력 받아 텍스트로 변환
     text = record_audio(language_code)
     if text:
-        # 파일명 설정
-        audio_filename = os.path.join(audio_dir, "output_audio.mp3")
-        text_filename = os.path.join(text_dir, "output_text.txt")
         # 변환된 텍스트를 음성 파일로 저장
         text_to_speech(text, tts_language, audio_filename)
         # 변환된 텍스트를 텍스트 파일로 저장
