@@ -35,23 +35,38 @@ def save_files(text, audio_filename, language):
 def main():
     """
     텍스트를 입력받아 오디오 파일과 텍스트 파일로 저장하는 메인 함수입니다.
+    "exit"가 입력될 때까지 반복합니다.
     """
     ensure_directories()
 
-    # 사용자로부터 텍스트 입력받기
-    text = input("Enter the text to convert to speech: ")
+    while True:
+        # 사용자로부터 텍스트 입력받기
+        text = input("변환할 텍스트를 입력하세요 (종료하려면 'exit' 입력): ").strip()
+        if text.lower() == "exit":
+            print("프로그램을 종료합니다.")
+            break
 
-    # 사용자로부터 파일 이름 입력받기
-    filename = input("Enter the filename to save (without extension): ")
-    audio_filename = f"{filename}.mp3"
+        # 사용자로부터 파일 이름 입력받기
+        filename = input("저장할 파일 이름을 입력하세요 (확장자 없이): ").strip()
+        if not filename:
+            print("파일 이름을 입력하세요.")
+            continue
 
-    # 사용자로부터 언어 코드 입력받기 (기본값은 영어)
-    language = input("Enter the language code (default is 'en'): ") or 'en'
+        # 사용자로부터 언어 코드 입력받기 (기본값은 영어)
+        language = input("언어 코드를 입력하세요 (기본값은 'en'): ").strip() or 'en'
 
-    # 파일 저장
-    audio_path, text_path = save_files(text, audio_filename, language)
+        audio_filename = f"{filename}.mp3"
+        audio_path = os.path.join("audio_files", audio_filename)
+        text_path = os.path.join("text_files", audio_filename.replace(".mp3", ".txt"))
 
-    print(f"Files have been saved: \nAudio - {audio_path}\nText - {text_path}")
+        # 중복 파일 확인
+        if os.path.exists(audio_path) or os.path.exists(text_path):
+            print("이미 존재하는 파일입니다. 다른 파일 이름을 선택하세요.")
+            continue
+
+        # 파일 저장
+        audio_path, text_path = save_files(text, audio_filename, language)
+        print(f"파일이 저장되었습니다: \n오디오 - {audio_path}\n텍스트 - {text_path}")
 
 if __name__ == "__main__":
     main()
