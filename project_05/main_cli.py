@@ -1,6 +1,7 @@
 from gtts import gTTS
 import os
 import shutil
+from datetime import datetime
 
 def text_to_speech(text_file, output_file):
     # 텍스트 파일을 읽습니다
@@ -12,6 +13,21 @@ def text_to_speech(text_file, output_file):
     
     # 변환된 음성을 파일로 저장합니다
     tts.save(output_file)
+    
+    # 로그 기록
+    log_message = f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - Converted '{text_file}' to '{output_file}'\n"
+    log(log_message)
+
+def log(message):
+    # log 폴더 생성
+    os.makedirs('log', exist_ok=True)
+    
+    # 날짜별 로그 파일 이름 생성
+    log_file_name = datetime.now().strftime("log/%Y-%m-%d.log")
+    
+    # 로그 메시지 파일에 추가
+    with open(log_file_name, 'a', encoding='utf-8') as log_file:
+        log_file.write(message)
 
 def main():
     # 디렉토리 생성
