@@ -1,8 +1,10 @@
 import os
 import threading
-from pydub import AudioSegment
-from pydub.playback import play
+import pygame
 import time
+
+# 초기화
+pygame.mixer.init()
 
 # 글로벌 변수와 잠금을 사용하여 스레드 간의 동기화 처리
 stop_playback = False
@@ -10,33 +12,11 @@ playback_thread = None
 playback_lock = threading.Lock()
 
 def play_audio(file_path):
-    global stop_playback
-    audio = AudioSegment.from_file(file_path)
-    play(audio)
-
-def playback_worker(file_path):
-    global stop_playback
-    audio = AudioSegment.from_file(file_path)
-    stop_playback = False
-    start_time = time.time()
-
-    # pydub playback의 대안을 구현하여 중지 기능 제공
-    while not stop_playback and time.time() - start_time < len(audio) / 1000.0:
-        play(audio[:1000])
-        audio = audio[1000:]
-
-def start_playback(file_path):
-    global playback_thread, stop_playback
-    stop_playback = False
-    playback_thread = threading.Thread(target=playback_worker, args=(file_path,))
-    playback_thread.start()
+    pygame.mixer.music.load(file_path)
+    pygame.mixer.music.play()
 
 def stop_playback_func():
-    global stop_playback
-    with playback_lock:
-        stop_playback = True
-    if playback_thread:
-        playback_thread.join()
+    pygame.mixer.music.stop()
 
 def rename_audio_files(directory, new_name):
     if not os.path.exists(directory):
@@ -57,6 +37,7 @@ def rename_audio_files(directory, new_name):
         selection = input("Enter the number or name of the file you want to play (or 'q' to quit, 's' to stop): ").strip()
         
         if selection.lower() == 'q':
+            stop_playback_func()
             break
         
         if selection.lower() == 's':
@@ -69,14 +50,14 @@ def rename_audio_files(directory, new_name):
                 if 0 <= index < len(mp3_files):
                     file_path = os.path.join(directory, mp3_files[index])
                     stop_playback_func()  # 이전 재생 중지
-                    start_playback(file_path)
+                    play_audio(file_path)
                 else:
                     print("Invalid number. Please try again.")
             else:
                 if selection in mp3_files:
                     file_path = os.path.join(directory, selection)
                     stop_playback_func()  # 이전 재생 중지
-                    start_playback(file_path)
+                    play_audio(file_path)
                 else:
                     print("Invalid name. Please try again.")
         except Exception as e:
