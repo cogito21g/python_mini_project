@@ -3,10 +3,61 @@ import os
 import shutil
 import io
 from datetime import datetime
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QListWidget, QPushButton, QVBoxLayout, QWidget, QLabel, QHBoxLayout
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QMessageBox, QListWidget, QPushButton, QVBoxLayout, QWidget, QLabel, QHBoxLayout, QProgressDialog
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 import speech_recognition as sr
 from pydub import AudioSegment
+
+class Worker(QThread):
+    progress = pyqtSignal(str)
+
+    def __init__(self, audio_file_path, log_file_path):
+        super().__init__()
+        self.audio_file_path = audio_file_path
+        self.log_file_path = log_file_path
+
+    def run(self):
+        recognizer = sr.Recognizer()
+        file_extension = os.path.splitext(self.audio_file_path)[1].lower()
+        file_name = os.path.splitext(os.path.basename(self.audio_file_path))[0]
+        text_file_path = f"text_files/{file_name}.txt"
+
+        with open(self.log_file_path, 'a', encoding='utf-8') as log_file:
+            if os.path.exists(text_file_path):
+                log_file.write(f"{datetime.now()} - {self.audio_file_path} - 이미 존재함\n")
+                self.progress.emit(f"{text_file_path} 이미 존재합니다. 변환을 건너뜁니다.")
+                return
+
+            if file_extension == '.mp3':
+                audio = AudioSegment.from_mp3(self.audio_file_path)
+                wav_io = io.BytesIO()
+                audio.export(wav_io, format='wav')
+                wav_io.seek(0)
+                audio_file = wav_io
+            elif file_extension == '.wav':
+                audio_file = self.audio_file_path
+            else:
+                log_file.write(f"{datetime.now()} - {self.audio_file_path} - 지원되지 않는 파일 형식\n")
+                self.progress.emit("지원되지 않는 파일 형식입니다.")
+                return
+
+            with sr.AudioFile(audio_file) as source:
+                audio_data = recognizer.record(source)
+                try:
+                    text = recognizer.recognize_google(audio_data, language='ko-KR')
+                    with open(text_file_path, 'w', encoding='utf-8') as text_file:
+                        text_file.write(text)
+                    log_file.write(f"{datetime.now()} - {self.audio_file_path} - 변환 성공\n")
+                    self.progress.emit(f"텍스트가 파일로 저장되었습니다: {text_file_path}")
+                except sr.UnknownValueError:
+                    log_file.write(f"{datetime.now()} - {self.audio_file_path} - 음성을 인식할 수 없음\n")
+                    self.progress.emit("음성을 인식할 수 없습니다.")
+                except sr.RequestError as e:
+                    log_file.write(f"{datetime.now()} - {self.audio_file_path} - API 요청 에러: {e}\n")
+                    self.progress.emit(f"API 요청 에러: {e}")
+                finally:
+                    if isinstance(audio_file, io.BytesIO):
+                        audio_file.close()
 
 class AudioToTextApp(QMainWindow):
     def __init__(self):
@@ -88,51 +139,19 @@ class AudioToTextApp(QMainWindow):
         audio_file_path = f"audio_files/{audio_file_name}"
 
         log_file_path = f"logs/log_{datetime.now().strftime('%Y%m%d')}.txt"
-        with open(log_file_path, 'a', encoding='utf-8') as log_file:
-            result = self.convert_audio_to_text(audio_file_path, log_file)
-            if result:
-                QMessageBox.information(self, "Information", result)
-                self.update_text_file_list()
 
-    def convert_audio_to_text(self, audio_file_path, log_file):
-        recognizer = sr.Recognizer()
-        file_extension = os.path.splitext(audio_file_path)[1].lower()
-        file_name = os.path.splitext(os.path.basename(audio_file_path))[0]
-        text_file_path = f"text_files/{file_name}.txt"
+        self.progress_dialog = QProgressDialog("변환 중...", None, 0, 0, self)
+        self.progress_dialog.setWindowModality(Qt.WindowModal)
+        self.progress_dialog.show()
 
-        if os.path.exists(text_file_path):
-            log_file.write(f"{datetime.now()} - {audio_file_path} - 이미 존재함\n")
-            return f"{text_file_path} 이미 존재합니다. 변환을 건너뜁니다."
+        self.worker = Worker(audio_file_path, log_file_path)
+        self.worker.progress.connect(self.show_progress)
+        self.worker.start()
 
-        if file_extension == '.mp3':
-            audio = AudioSegment.from_mp3(audio_file_path)
-            wav_io = io.BytesIO()
-            audio.export(wav_io, format='wav')
-            wav_io.seek(0)
-            audio_file = wav_io
-        elif file_extension == '.wav':
-            audio_file = audio_file_path
-        else:
-            log_file.write(f"{datetime.now()} - {audio_file_path} - 지원되지 않는 파일 형식\n")
-            return "지원되지 않는 파일 형식입니다."
-
-        with sr.AudioFile(audio_file) as source:
-            audio_data = recognizer.record(source)
-            try:
-                text = recognizer.recognize_google(audio_data, language='ko-KR')
-                with open(text_file_path, 'w', encoding='utf-8') as text_file:
-                    text_file.write(text)
-                log_file.write(f"{datetime.now()} - {audio_file_path} - 변환 성공\n")
-                return f"텍스트가 파일로 저장되었습니다: {text_file_path}"
-            except sr.UnknownValueError:
-                log_file.write(f"{datetime.now()} - {audio_file_path} - 음성을 인식할 수 없음\n")
-                return "음성을 인식할 수 없습니다."
-            except sr.RequestError as e:
-                log_file.write(f"{datetime.now()} - {audio_file_path} - API 요청 에러: {e}\n")
-                return f"API 요청 에러: {e}"
-            finally:
-                if isinstance(audio_file, io.BytesIO):
-                    audio_file.close()
+    def show_progress(self, message):
+        self.progress_dialog.cancel()
+        QMessageBox.information(self, "Information", message)
+        self.update_text_file_list()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
