@@ -5,15 +5,24 @@ def choose_language():
     print("Choose the language for speech recognition:")
     print("1: English")
     print("2: Korean")
+    print("3: Chinese")
+    print("4: Japanese")
+    print("5: Spanish")
+    print("6: German")
+    print("7: French")
     choice = input("Enter the number of your choice: ")
     
-    if choice == '1':
-        return 'en-US'
-    elif choice == '2':
-        return 'ko-KR'
-    else:
-        print("Invalid choice. Defaulting to English.")
-        return 'en-US'
+    language_mapping = {
+        '1': 'en-US',
+        '2': 'ko-KR',
+        '3': 'zh-CN',
+        '4': 'ja-JP',
+        '5': 'es-ES',
+        '6': 'de-DE',
+        '7': 'fr-FR'
+    }
+    
+    return language_mapping.get(choice, 'en-US')
 
 def record_audio(language):
     # 음성 인식 객체 생성
@@ -36,9 +45,9 @@ def record_audio(language):
         print("Could not request results from Google Speech Recognition service; {0}".format(e))
         return None
 
-def text_to_speech(text, output_audio_filename="output_audio.mp3"):
+def text_to_speech(text, language, output_audio_filename="output_audio.mp3"):
     # 텍스트를 음성으로 변환
-    tts = gTTS(text=text, lang='en')
+    tts = gTTS(text=text, lang=language)
     # 음성 파일 저장
     tts.save(output_audio_filename)
     print(f"Saved audio to {output_audio_filename}")
@@ -51,11 +60,11 @@ def save_text_to_file(text, output_text_filename="output_text.txt"):
 
 if __name__ == "__main__":
     # 언어 선택
-    language = choose_language()
+    language_code = choose_language()
     # 마이크로부터 음성 입력 받아 텍스트로 변환
-    text = record_audio(language)
+    text = record_audio(language_code)
     if text:
         # 변환된 텍스트를 음성 파일로 저장
-        text_to_speech(text)
+        text_to_speech(text, language_code.split('-')[0])
         # 변환된 텍스트를 텍스트 파일로 저장
         save_text_to_file(text)
