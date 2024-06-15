@@ -12,6 +12,7 @@ def convert_audio_to_text(audio_file_path):
     
     # 파일 확장자를 확인합니다.
     file_extension = os.path.splitext(audio_file_path)[1].lower()
+    file_name = os.path.splitext(audio_file_path)[0]
     print(f"파일 확장자 확인: {file_extension}")
     
     # 파일 확장자에 따라 변환을 처리합니다.
@@ -44,6 +45,13 @@ def convert_audio_to_text(audio_file_path):
             # 구글 음성 인식 API를 사용하여 음성을 텍스트로 변환합니다.
             text = recognizer.recognize_google(audio_data, language='ko-KR')
             print("변환 성공!")
+
+            # 변환된 텍스트를 파일로 저장합니다.
+            text_file_path = f"{file_name}.txt"
+            with open(text_file_path, 'w', encoding='utf-8') as text_file:
+                text_file.write(text)
+            print(f"텍스트가 파일로 저장되었습니다: {text_file_path}")
+
             return text
         except sr.UnknownValueError:
             # 음성을 인식할 수 없는 경우
