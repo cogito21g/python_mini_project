@@ -33,12 +33,13 @@ def log_message(file_name, status, message):
     with open(log_file_path, 'a') as log_file:
         log_file.write(f"{datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {status} - {file_name.upper()} - {message}\n")
 
-def convert_audio_to_text(audio_file_path):
+def convert_audio_to_text(audio_file_path, language):
     """
     오디오 파일을 Google Web Speech API를 사용하여 텍스트로 변환하고, 변환된 텍스트를 텍스트 파일로 저장합니다.
 
     Parameters:
     audio_file_path (str): 입력 오디오 파일 경로.
+    language (str): 변환에 사용할 언어 코드.
     """
     # 파일 확장자를 제외한 파일 이름을 가져옵니다
     base_name = os.path.splitext(os.path.basename(audio_file_path))[0]
@@ -84,7 +85,7 @@ def convert_audio_to_text(audio_file_path):
 
         # 오디오를 텍스트로 변환합니다
         try:
-            text = recognizer.recognize_google(audio_data, language="en-US")  # 영어로 변환합니다
+            text = recognizer.recognize_google(audio_data, language=language)  # 지정된 언어로 변환합니다
             with open(output_text_file, 'w') as f:
                 f.write(text)
             print(f"Transcription saved to {output_text_file}")
@@ -103,6 +104,9 @@ def convert_audio_to_text(audio_file_path):
 def main():
     # 모든 지원되는 오디오 파일을 audio_files 디렉터리로 이동합니다
     move_files_to_audio_folder()
+
+    # 사용자가 언어 코드를 입력합니다. 기본값은 영어(en-US)입니다.
+    language = input("Enter the language code for transcription (default is 'en-US'): ").strip() or 'en-US'
 
     while True:
         # audio_files 디렉터리에 있는 모든 오디오 파일을 나열합니다
@@ -128,7 +132,7 @@ def main():
                     chosen_file = audio_files[choice_num - 1]
                     chosen_file_path = os.path.join('audio_files', chosen_file)
                     # 선택된 오디오 파일을 텍스트로 변환합니다
-                    convert_audio_to_text(chosen_file_path)
+                    convert_audio_to_text(chosen_file_path, language)
                 else:
                     print(f"Invalid choice: {choice_num}. Please enter numbers corresponding to the listed files.")
                     log_message("None", "ERROR", f"Invalid choice: {choice_num}")
