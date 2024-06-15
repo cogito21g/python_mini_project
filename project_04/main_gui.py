@@ -1,4 +1,5 @@
 import os
+import sys
 import tkinter as tk
 from tkinter import messagebox
 from gtts import gTTS
@@ -7,15 +8,12 @@ def ensure_directories():
     """
     오디오 파일과 텍스트 파일을 저장할 디렉토리가 존재하지 않으면 생성합니다.
     """
-    if not os.path.exists("audio_files"):
-        os.makedirs("audio_files")
-    if not os.path.exists("text_files"):
-        os.makedirs("text_files")
+    os.makedirs("audio_files", exist_ok=True)
+    os.makedirs("text_files", exist_ok=True)
 
 def save_files(text, audio_filename, language):
     """
     텍스트를 오디오 파일과 텍스트 파일로 저장합니다.
-
     :param text: 변환할 텍스트
     :param audio_filename: 저장할 오디오 파일 이름 (확장자 포함)
     :param language: 변환할 텍스트의 언어 코드 (예: 'en', 'ko')
