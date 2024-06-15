@@ -108,7 +108,9 @@ def select_audio_file():
         print(f"{idx}. {file}")
     
     while True:
-        selection = input("파일 번호 또는 이름을 입력하세요: ")
+        selection = input("파일 번호, 이름을 입력하거나 'exit'을 입력하여 종료하세요: ")
+        if selection.lower() == 'exit':
+            return 'exit'
         if selection.isdigit():
             idx = int(selection) - 1
             if 0 <= idx < len(files):
@@ -128,7 +130,7 @@ with open('conversion_log.txt', 'a', encoding='utf-8') as log_file:
     while True:
         # 'exit' 명령어가 입력되면 프로그램을 종료합니다.
         audio_file_path = select_audio_file()
-        if not audio_file_path:
+        if audio_file_path == 'exit':
             print("프로그램을 종료합니다.")
             break
 
